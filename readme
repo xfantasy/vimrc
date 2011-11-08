@@ -1,8 +1,10 @@
 author : x.fantasy@gmail.com
 history : 
-	2011.11.08 -- init
+	2011.11.08 -- add
 
-step 1. create symbol file '~/.vimrc' link to ~/vim/vimrc
-step 2. create symbol file '~/.gvimrc' link to ~/vim/gvimrc
-step 3. enjoy vim
-
+setp 1. git clone to ~/.vim
+	git clone git@github.com:xfantasy/vimrc.git .vim
+step 2. create a symbolic link file '~/.vimr' link to ~/.vim/vimrc
+	ln -s ~/.vim/vimrc ~/.vimrc
+step 3. create a symbolic link file '~/.gvimrc' link to ~/.vim/gvimrc
+	ln -s ~/.vim/gvimrc ~/.gvimrc
