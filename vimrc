@@ -2,6 +2,10 @@
 " create by x.fantasy
 " last modify 2011.08.20
 
+
+set runtimepath=~/vim,$VIMRUNTIME
+let $VIMRC = $VIMRUNTIME.'/vimrc'
+
 "让vimrc保存时自动生效
 autocmd! bufwritepost .vimrc source ~/.vimrc
 
