@@ -2,8 +2,6 @@
 " create by x.fantasy
 " last modify 2011.08.20
 
-
-set runtimepath=~/vim,$VIMRUNTIME
 let $VIMRC = $VIMRUNTIME.'/vimrc'
 
 "让vimrc保存时自动生效
@@ -98,8 +96,7 @@ if has("folding")
 	set foldlevel=2
 	set foldnestmax=3
 endif
-filetype plugin on
-filetype on			"检测文件类型
+filetype plugin on	"检测文件类型
 
 " toggle colorscheme
 func! ToggleColor()
