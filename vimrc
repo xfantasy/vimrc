@@ -134,9 +134,11 @@ let tlist_css_settings = 'css;s:Selectors'
 let g:tlist_javascript_settings = 'javascript;s:string;a:array;o:object;f:function'
 
 " acp
+autocmd FileType python set omnifunc=pythoncomplete#Complete
 autocmd FileType javascript set omnifunc=javascriptcomplete#CompleteJS
 autocmd FileType html set omnifunc=htmlcomplete#CompleteTags
 autocmd FileType css set omnifunc=csscomplete#CompleteCSS
+autocmd FileType xml set omnifunc=xmlcomplete#CompleteTags
 
 " winmanager
 let g:NERDTree_title="[File list]"  
@@ -151,6 +153,7 @@ endfunction
 " key & mouse
 set backspace=indent,eol,start
 set mouse=a
+map <Tab> <C-w><C-w>
 map <F2> :!svn update<CR>
 map <F3> :!svn commit --message=''<LEFT>
 map <F4> :ToggleNERDTree<CR>
