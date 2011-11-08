@@ -1,0 +1,3 @@
+#忽略_undodir下的文件
+
+_undodir/*
