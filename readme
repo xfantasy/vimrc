@@ -1,0 +1,8 @@
+author : x.fantasy@gmail.com
+history : 
+	2011.11.08 -- init
+
+step 1. create symbol file '.vimrc' link to ~/vim/vimrc
+step 2. create symbol file '.gvimrc' link to ~/vim/gvimrc
+step 3. enjoy vim
+
