@@ -1,7 +1,14 @@
 " Vim completion script
 " Language:	HTML and XHTML
 " Maintainer:	Mikolaj Machowski ( mikmach AT wp DOT pl )
-" Last Change:	2011 Apr 28
+" Last Change:	2006 Oct 19
+" Modified:     othree <othree@gmail.com>
+" Changes:      Add HTML5, WAI-ARIA support
+" Last Change:	2010 Sep 25
+
+if !exists('g:aria_attributes_complete')
+    let g:aria_attributes_complete = 1
+endif
 
 function! htmlcomplete#CompleteTags(findstart, base)
   if a:findstart
@@ -160,6 +167,9 @@ function! htmlcomplete#CompleteTags(findstart, base)
 			"runtime! autoload/xml/xhtml10s.vim
 			call htmlcomplete#LoadData()
 		endif
+        if g:aria_attributes_complete == 1 && !exists("b:aria_omni")
+            call htmlcomplete#LoadAria()
+        endif
 
 	    let entities =  b:html_omni['vimxmlentities']
 
@@ -209,7 +219,7 @@ function! htmlcomplete#CompleteTags(findstart, base)
 		let tag = split(context)[0]
 		" Detect if tag is uppercase to return in proper case,
 		" we need to make it lowercase for processing
-		if tag =~ '^[A-Z]*$'
+		if tag =~ '^\u*$'
 			let uppercase_tag = 1
 			let tag = tolower(tag)
 		else
@@ -217,12 +227,15 @@ function! htmlcomplete#CompleteTags(findstart, base)
 		endif
 	endif
 	" Get last word, it should be attr name
-	let attr = matchstr(context, '.*\s\zs.*')
+	let attr = matchstr(context, '\S\+="[^"]*$')
+    if attr == ''
+        let attr = matchstr(context, '.*\s\zs.*')
+    endif
 	" Possible situations where any prediction would be difficult:
 	" 1. Events attributes
 	if context =~ '\s'
 		" Sort out style, class, and on* cases
-		if context =~? "\\(on[a-z]*\\|id\\|style\\|class\\)\\s*=\\s*[\"']"
+		if context =~? "\\s\\(on[a-z]+\\|id\\|style\\|class\\)\\s*=\\s*[\"']"
 			" Id, class completion {{{
 			if context =~? "\\(id\\|class\\)\\s*=\\s*[\"'][a-zA-Z0-9_ -]*$"
 				if context =~? "class\\s*=\\s*[\"'][a-zA-Z0-9_ -]*$"
@@ -285,7 +298,6 @@ function! htmlcomplete#CompleteTags(findstart, base)
 				let cssfiles = styletable + secimportfiles
 				let classes = []
 				for file in cssfiles
-				  	let classlines = []
 					if filereadable(file)
 						let stylesheet = readfile(file)
 						let stylefile = join(stylesheet, ' ')
@@ -306,9 +318,9 @@ function! htmlcomplete#CompleteTags(findstart, base)
 							let classlines = filter(stylelines, "v:val =~ '#[a-zA-Z0-9_-]\\+'")
 
 						endif
+                        " We gathered classes definitions from all external files
+                        let classes += classlines
 					endif
-					" We gathered classes definitions from all external files
-					let classes += classlines
 				endfor
 				if internal == 1
 					let classes += headclasslines
@@ -457,6 +469,9 @@ function! htmlcomplete#CompleteTags(findstart, base)
 				"runtime! autoload/xml/xhtml10s.vim
 				call htmlcomplete#LoadData()
 			endif
+            if g:aria_attributes_complete == 1 && !exists("b:aria_omni")
+                call htmlcomplete#LoadAria()
+            endif
 			" }}}
 			if attrname == 'href'
 				" Now we are looking for local anchors defined by name or id
@@ -472,6 +487,8 @@ function! htmlcomplete#CompleteTags(findstart, base)
 			else
 				if has_key(b:html_omni, tag) && has_key(b:html_omni[tag][1], attrname)
 					let values = b:html_omni[tag][1][attrname]
+                elseif attrname =~ '^aria-' && exists("b:aria_omni") && has_key(b:aria_omni['aria_attributes'], attrname)
+					let values = b:aria_omni['aria_attributes'][attrname]
 				else
 					return []
 				endif
@@ -479,18 +496,35 @@ function! htmlcomplete#CompleteTags(findstart, base)
 
 			if len(values) == 0
 				return []
-			endif
+            endif
 
 			" We need special version of sbase
 			let attrbase = matchstr(context, ".*[\"']")
 			let attrquote = matchstr(attrbase, '.$')
 			if attrquote !~ "['\"]"
 				let attrquoteopen = '"'
-				let attrquote = '"'
+                let attrquote = '"'
 			else
 				let attrquoteopen = ''
-			endif
+            endif
+            " Multi value attributes don't need ending quote
+            let info = ''
+            if has_key(b:html_omni['vimxmlattrinfo'], attrname)
+                let info = b:html_omni['vimxmlattrinfo'][attrname][0]
+            elseif exists("b:aria_omni") && has_key(b:aria_omni['vimariaattrinfo'], attrname)
+                let info = b:aria_omni['vimariaattrinfo'][attrname][0]
+            endif
+            if info =~ "^\\*"
+                let attrquote = ''
+            endif
 
+            if len(entered_value) > 0
+                if entered_value =~ "\\s$"
+                    let entered_value = ''
+                else
+                    let entered_value = split(entered_value)[-1]
+                endif
+            endif
 			for m in values
 				" This if is needed to not offer all completions as-is
 				" alphabetically but sort them. Those beginning with entered
@@ -517,13 +551,35 @@ function! htmlcomplete#CompleteTags(findstart, base)
 		if !exists("b:html_omni")
 			call htmlcomplete#LoadData()
 		endif
+        if g:aria_attributes_complete == 1 && !exists("b:aria_omni")
+            call htmlcomplete#LoadAria()
+        endif
 		" }}}
 
 		if has_key(b:html_omni, tag)
 			let attrs = keys(b:html_omni[tag][1])
 		else
 			return []
-		endif
+        endif
+        if exists("b:aria_omni")
+            let roles = []
+            if has_key(b:aria_omni['default_role'], tag)
+                let roles = [b:aria_omni['default_role'][tag]]
+            endif
+            if context =~ 'role='
+                let start = matchend(context, "role=['\"]")
+                let end   = matchend(context, "[a-z ]\\+['\"]", start)
+                if start != -1 && end != -1
+                    let roles = split(strpart(context, start, end-start-1), " ")
+                endif
+            endif
+            for i in range(len(roles))
+                let role = roles[i]
+                if has_key(b:aria_omni['role_attributes'], role)
+                    let attrs = extend(attrs, b:aria_omni['role_attributes'][role])
+                endif
+            endfor
+        endif
 
 		for m in sort(attrs)
 			if m =~ '^'.attr
@@ -532,24 +588,37 @@ function! htmlcomplete#CompleteTags(findstart, base)
 				call add(res2, m)
 			endif
 		endfor
-		let menu = res + res2
-		if has_key(b:html_omni, 'vimxmlattrinfo')
+		"let menu = res + res2
+		let menu = res
+		if has_key(b:html_omni, 'vimxmlattrinfo') || (exists("b:aria_omni") && has_key(b:aria_omni, 'vimariaattrinfo'))
 			let final_menu = []
 			for i in range(len(menu))
 				let item = menu[i]
 				if has_key(b:html_omni['vimxmlattrinfo'], item)
 					let m_menu = b:html_omni['vimxmlattrinfo'][item][0]
 					let m_info = b:html_omni['vimxmlattrinfo'][item][1]
-				else
+                elseif exists("b:aria_omni") && has_key(b:aria_omni['vimariaattrinfo'], item)
+					let m_menu = b:aria_omni['vimariaattrinfo'][item][0]
+					let m_info = b:aria_omni['vimariaattrinfo'][item][1]
+                else
 					let m_menu = ''
 					let m_info = ''
-				endif
-				if len(b:html_omni[tag][1][item]) > 0 && b:html_omni[tag][1][item][0] =~ '^\(BOOL\|'.item.'\)$'
-					let item = item
-					let m_menu = 'Bool'
-				else
-					let item .= '="'
-				endif
+                endif
+                if item =~ '^aria-' && exists("b:aria_omni")
+                    if len(b:aria_omni['aria_attributes'][item]) > 0 && b:aria_omni['aria_attributes'][item][0] =~ '^\(BOOL\|'.item.'\)$'
+                        let item = item
+                        let m_menu = 'Bool'
+                    else
+                        let item .= '="'
+                    endif
+                else
+                    if len(b:html_omni[tag][1][item]) > 0 && b:html_omni[tag][1][item][0] =~ '^\(BOOL\|'.item.'\)$'
+                        let item = item
+                        let m_menu = 'Bool'
+                    else
+                        let item .= '="'
+                    endif
+                endif
 				let final_menu += [{'word':item, 'menu':m_menu, 'info':m_info}]
 			endfor
 		else
@@ -571,7 +640,7 @@ function! htmlcomplete#CompleteTags(findstart, base)
 	endif
 	" }}}
 	" Close tag {{{
-	let b:unaryTagsStack = "base meta link hr br param img area input col"
+	let b:unaryTagsStack = "area base br col command embed hr img input keygen link meta param source track wbr"
 	if context =~ '^\/'
 		if context =~ '^\/.'
 			return []
@@ -589,6 +658,9 @@ function! htmlcomplete#CompleteTags(findstart, base)
 		"runtime! autoload/xml/xhtml10s.vim
 		call htmlcomplete#LoadData()
 	endif
+    if g:aria_attributes_complete == 1 && !exists("b:aria_omni")
+        call htmlcomplete#LoadAria()
+    endif
 	" }}}
 	" Tag completion {{{
 	" Deal with tag completion.
@@ -616,7 +688,8 @@ function! htmlcomplete#CompleteTags(findstart, base)
 	endif
 	" Handle XML keywords: DOCTYPE
 	if opentag == ''
-		let tags += [
+		let tags = [
+				\ '!DOCTYPE html>',
 				\ '!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">',
 				\ '!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">',
 				\ '!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">',
@@ -628,10 +701,11 @@ function! htmlcomplete#CompleteTags(findstart, base)
 				\ '!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">',
 				\ '!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">',
 				\ '!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/1999/xhtml">'
-				\ ]
+				\ ] + sort(tags)
 	endif
 
-	for m in sort(tags)
+	"for m in sort(tags)
+	for m in tags
 		if m =~ '^'.context
 			call add(res, m)
 		elseif m =~ context
@@ -654,7 +728,11 @@ function! htmlcomplete#CompleteTags(findstart, base)
 				let item = toupper(item)
 			endif
 			if item =~ 'DOCTYPE'
-				let abbr = 'DOCTYPE '.matchstr(item, 'DTD \zsX\?HTML .\{-}\ze\/\/')
+                if item =~ 'DTD'
+                    let abbr = 'DOCTYPE '.matchstr(item, 'DTD \zsX\?HTML .\{-}\ze\/\/')
+                else
+                    let abbr = 'DOCTYPE HTML 5'
+                endif
 			else
 				let abbr = item
 			endif
@@ -669,6 +747,19 @@ function! htmlcomplete#CompleteTags(findstart, base)
   endif
 endfunction
 
+function! htmlcomplete#LoadAria() " {{{
+    runtime! autoload/xml/aria.vim
+    if exists("g:xmldata_aria")
+        \ && has_key(g:xmldata_aria, 'default_role') 
+        \ && has_key(g:xmldata_aria, 'role_attributes') 
+        \ && has_key(g:xmldata_aria, 'vimariaattrinfo')
+        \ && has_key(g:xmldata_aria, 'aria_attributes')
+        let b:aria_omni = g:xmldata_aria
+    else
+        let g:aria_attributes_complete = 0
+    endif
+endfunction
+" }}}
 function! htmlcomplete#LoadData() " {{{
 	if !exists("b:html_omni_flavor")
 		if &filetype == 'html'
@@ -739,6 +830,10 @@ function! htmlcomplete#CheckDoctype() " {{{
 			break
 		elseif line =~ '<!DOCTYPE.*\<DTD XHTML 1\.1'
 			let b:html_omni_flavor = 'xhtml11'
+			let b:html_doctype = 1
+			break
+		elseif line =~ '<!DOCTYPE html'
+			let b:html_omni_flavor = 'html5'
 			let b:html_doctype = 1
 			break
 		endif
