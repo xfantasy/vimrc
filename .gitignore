@@ -3,3 +3,8 @@ _undodir/*
 
 #view
 view/*
+
+.VimballRecord
+
+*.swp
+*.tmp
