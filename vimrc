@@ -5,7 +5,7 @@
 let $VIMRC = $VIMRUNTIME.'/vimrc'
 
 "让vimrc保存时自动生效
-autocmd! bufwritepost .vimrc source ~/.vimrc
+autocmd! bufwritepost vimrc source ~/.vim/vimrc
 
 "设定vimfiles路径
 if has("win32")
@@ -22,6 +22,7 @@ set anti			"开启抗锯齿渲染
 
 set history=128
 colorscheme rdark	"主题
+colo
 set guifont=Monaco:h13
 set linespace=2
 
