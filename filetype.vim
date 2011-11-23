@@ -9,7 +9,7 @@ augroup filetypedetect
 	autocmd! BufRead,BufNewFile *.py set filetype=python
 	autocmd! BufRead,BufNewFile *.c set filetype=c
 	autocmd! BufRead,BufNewFile *.php set filetype=php
-	autocmd! BufRead,BufNewFile *.vim set filetype=vim
+	autocmd! BufRead,BufNewFile *.vim vimrc gvimrc set filetype=vim
 	autocmd! BufRead,BufNewFile *.css set filetype=css
 	autocmd! BufRead,BufNewFile *.vm set filetype=html
 	autocmd! BufRead,BufNewFile *.htm set filetype=html
