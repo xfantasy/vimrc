@@ -1,0 +1,21 @@
+# bluex vim config
+	author : 		<x.fantasy@gmail.com>
+	last modify : 	2011.11.24
+	version : 		1.1
+
+*notice, this config only used in Mac OS X system*
+
+####use guide
+
+1. in *shell*, input 'cd ~' to user directory.
+2. clone config file to local.
+3. create a symbolic link files to ~/.vim/vimrc and ~/.vim/gvimrc.
+
+__________
+code eg:
+<code>
+	cd ~
+	gitclone git@github.com:xfantasy/vimrc.git .vim
+	ln -s ~/.vim/vimrc ~/.vimrc
+	ln -s ~/.vim/gvimrc ~/.gvimrc
+</code>
