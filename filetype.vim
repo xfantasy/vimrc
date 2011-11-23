@@ -18,5 +18,5 @@ augroup filetypedetect
 	autocmd! BufRead,BufNewFile *.html set filetype=html
 	autocmd! BufRead,BufNewFile *.xml set filetype=xml
 	autocmd! BufRead,BufNewFile *.sh set filetype=sh
-	autocmd! BufRead,BufNewFile *.c set filetype=c
+	autocmd! BufRead,BufNewFile *.java set filetype=java
 augroup END
