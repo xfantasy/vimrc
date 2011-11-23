@@ -6,6 +6,7 @@ let $VIMRC = $VIMRUNTIME.'/vimrc'
 
 "让vimrc保存时自动生效
 autocmd! bufwritepost vimrc source ~/.vim/vimrc
+autocmd! bufwritepost gvimrc source ~/.vim/gvimrc
 
 "设定vimfiles路径
 if has("win32")
@@ -17,7 +18,6 @@ endif
 set autoread
 set nocompatible	"以非vi兼容模式运行
 
-set transparency=5	"透明度
 set anti			"开启抗锯齿渲染
 
 set history=128
