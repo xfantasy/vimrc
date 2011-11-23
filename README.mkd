@@ -14,8 +14,8 @@
 __________
 code eg:
 <code>
-	cd ~
-	gitclone git@github.com:xfantasy/vimrc.git .vim
-	ln -s ~/.vim/vimrc ~/.vimrc
+	cd ~ <br/>
+	gitclone git@github.com:xfantasy/vimrc.git .vim <br/>
+	ln -s ~/.vim/vimrc ~/.vimrc <br/>
 	ln -s ~/.vim/gvimrc ~/.gvimrc
 </code>
