@@ -84,10 +84,9 @@ if has("multi_byte")
 endif
 
 " syntax & folding
-if has("syntax")
-	syntax enable
-	let html_number_lines = 0
-endif
+let html_number_lines = 0
+syntax on
+
 if has("folding")
 	set foldenable
 	set foldmethod=syntax
