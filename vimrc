@@ -21,8 +21,6 @@ set nocompatible	"以非vi兼容模式运行
 set anti			"开启抗锯齿渲染
 
 set history=128
-colorscheme rdark	"主题
-colo
 set guifont=Monaco:h13
 set linespace=2
 
