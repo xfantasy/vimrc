@@ -4,7 +4,7 @@
 
 set transparency=10
 set imactivatekey=D-space
-set transparency=10	"透明度
+set transparency=5	"透明度
 
 set guioptions-=T
 set guioptions-=a
